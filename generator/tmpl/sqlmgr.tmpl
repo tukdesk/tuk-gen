@@ -20,6 +20,7 @@ func {{ $objName }}SQLMgr() *{{ $structName }} {
 }
 
 type {{ $structName }} struct {
+    obj *{{ $objName }}
 }
 
 func (*{{ $structName }}) Table() string {
@@ -46,20 +47,67 @@ func (this *{{ $structName }}) FindOneByPrimaryKey(key {{ .PrimaryKey.Type.GoTyp
     }
 
     res := &{{ $objName }}{}
-    fields := res.Fields()
-    stmt := conn.Select(fields...).
+    fields := this.obj.Fields()
+    stmt := conn.SQL.Select(fields...).
         From(this.Table()).
-        Where(conn.Eq("{{ .PrimaryKey.Column }}", key))
+        Where(conn.SQL.Eq("{{ .PrimaryKey.Column }}", key))
 
-    query, err := conn.BuildSQL(stmt)
+    query, err := conn.SQL.Build(stmt)
     if err != nil {
         return nil, err
     }
 
     row := conn.QueryRow(query)
 
-    if err := res.Scan(row); err != nil {
+    if err := res.ScanAll(row); err != nil {
         return nil, err
+    }
+
+    return res, nil
+}
+
+func (this *{{ $structName }}) FindByPrimaryKeys(keys []{{ .PrimaryKey.Type.GoType }}, orders ...db.Order) ([]*{{ $objName }}, error) {
+    conn, err := this.Conn()
+    if err != nil {
+        return nil, err
+    }
+
+    res := make([]*{{ $objName }}, 0, len(keys))
+    fields := this.obj.Fields()
+    stmt := conn.SQL.Select(fields...).
+        From(this.Table()).
+        Where(conn.SQL.Eq("{{ .PrimaryKey.Column }}", keys))
+
+    for _, order := range orders {
+        if order.DESC {
+            stmt = stmt.OrderDesc(order.Column)
+            continue
+        }
+
+        stmt = stmt.OrderAsc(order.Column)
+    }
+
+    query, err := conn.SQL.Build(stmt)
+    if err != nil {
+        return nil, err
+    }
+
+    rows, err := conn.Query(query)
+    if db.IsErrNoRows(err) {
+        return res, nil
+    }
+
+    if err != nil {
+        return nil, err
+    }
+
+    for rows.Next() {
+        obj := &{{ $objName }}{}
+        if err := obj.ScanAll(rows); err != nil {
+            return nil, err
+        }
+
+        res = append(res, obj)
     }
 
     return res, nil

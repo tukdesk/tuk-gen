@@ -2,6 +2,7 @@ package generator
 
 import (
 	"bytes"
+	"fmt"
 	"go/format"
 	"io"
 	"os"
@@ -54,6 +55,7 @@ func outputFile(dir, filename, tplName string, data interface{}) error {
 
 	formatted, err := format.Source(buf.Bytes())
 	if err != nil {
+		fmt.Println(buf.String())
 		return err
 	}
 
