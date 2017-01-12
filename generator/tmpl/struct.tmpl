@@ -63,6 +63,30 @@ func (this *{{ $objName }}) Set{{ $field.Name }}(v {{ $field.Type.GoType }}) {
 }
 {{- end }}
 {{ end }}
+func (this *{{ $objName }}) Value(field string) interface{} {
+    switch field {
+    case "{{ .PrimaryKey.Column }}":
+        return this.{{ .PrimaryKey.Name }}
+
+    {{ range $field := .Fields -}}
+    case "{{ $field.Column }}":
+        return this.{{ $field.Name }}
+
+    {{ end }}
+    default:
+        panic(fmt.Errorf("unknown field %s", field))
+    }
+}
+
+func (this *{{ $objName }}) ValueAll() []interface{} {
+    return []interface{} {
+        this.{{ .PrimaryKey.Name }},
+        {{ range $field := .Fields -}}
+        this.{{ $field.Name }},
+        {{ end }}
+    }
+}
+
 func (this *{{ $objName }}) Receiver(field string) interface{} {
     switch field {
     case "{{ .PrimaryKey.Column }}":
