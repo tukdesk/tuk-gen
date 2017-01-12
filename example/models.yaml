@@ -1,0 +1,117 @@
+# 账号
+Account:
+  fields:
+    - Username: string
+      length: 30
+    - Password: string
+      length: 64
+    - CreatedAt: timestamp
+    - UpdatedAt: timestamp
+  uniques: [[Username]]
+
+Organization:
+  fields:
+    - Type: enum
+    - Slug: string
+      length: 30
+    - CreatedAt: timestamp
+    - UpdatedAt: timestamp
+  uniques: [[Slug]]
+
+OrganizationMember:
+  fields:
+    - OrganizationId: id
+    - AccountId: id
+    - Role: enum
+  uniques: [[OrganizationId, AccountId]]
+  index: [[AccountId, Role]]
+
+# 团队
+Team:
+  fields: 
+    - Name: string
+    - Description: string
+      nullable: true
+    - CreatedAt: timestamp
+    - UpdatedAt: timestamp
+    - Deleted: bool
+    - DeletedAt: timestamp
+
+OrganizationTeamRelation:
+  relation: true
+  fields:
+    - OrganizationId: id
+    - TeamId: id
+  uniques: [[OrganizationId, TeamId]]
+
+TeamMember:
+  fields:
+    - TeamId: id
+    - AccountId: id
+  uniques: [[TeamId, AccountId]]
+
+TeamDeskManagement:
+  fields:
+    - TeamId: id
+
+# 工作台
+Desk:
+  fields:
+    - Title: string
+    - Description: string
+    - CreatedAt: timestamp
+    - UpdatedAt: timestamp
+    - Deleted: bool
+    - DeletedAt: timestamp
+
+DeskScheduleRelation:
+  fields:
+    - DeskId: id
+    - ScheduleId: id
+    - Deleted: bool
+    - DeletedAt: timestamp
+
+# 时间表
+Schedule:
+  fields:
+    - Title: string
+    - Description: string
+    - CreatedAt: timestamp
+    - UpdatedAt: timestamp
+    - Deleted: bool
+    - DeletedAt: timestamp
+
+SchedulePointRelation:
+  fields:
+    - ScheduleId: id
+    - PointId: id
+
+# 时间点
+Point:
+  fields:
+    - Time: timestamp
+    - Title: string
+    - Description: string
+    - CreatedAt: timestamp
+    - UpdatedAt: timestamp
+    - Deleted: bool
+    - DeletedAt: timestamp
+
+# 链接
+Link:
+  fields:
+    - Name: string
+    - Key: string
+    - Type: enum
+    - Size: int64
+    - CreatedAt: timestamp
+    - Deleted: bool
+    - DeletedAt: timestamp
+
+# 时间点-链接 关联
+PointLinkRelation:
+  fields:
+    - PointId: id
+    - LinkId: id
+    - Deleted: bool
+    - DeletedAt: timestamp
