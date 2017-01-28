@@ -17,8 +17,14 @@ var (
     _ types.Id
     _ dbr.Dialect
 
-    ins{{ $objName }}SQLMgr = &{{ $structName }}{}
+    ins{{ $objName }}SQLMgr = New{{ $objName }}SQLMgr(nil)
 )
+
+func New{{ $objName }}SQLMgr(executor db.Executor) *{{ $structName }} {
+    return &{{ $structName }}{
+        executor: executor,
+    }
+}
 
 func {{ $objName }}SQLMgr() *{{ $structName }} {
     return ins{{ $objName }}SQLMgr
@@ -26,6 +32,7 @@ func {{ $objName }}SQLMgr() *{{ $structName }} {
 
 type {{ $structName }} struct {
     obj *{{ $objName }}
+    executor db.Executor
 }
 
 func (*{{ $structName }}) Table() string {
@@ -57,23 +64,31 @@ func (this *{{ $structName }}) MustConn() *db.Conn {
     return db.MustGet(this.Engine())
 }
 
+func (this *{{ $structName }}) Executor() db.Executor {
+    if this.executor != nil {
+        return this.executor
+    }
+
+    return this.MustConn()
+}
+
 func (this *{{ $structName }}) StmtInsertInto(column ...string) *dbr.InsertStmt {
-    s := this.MustConn().SQL
+    s := this.Executor().SQL()
     return s.InsertInto(this.Table()).Columns(column...)
 }
 
 func (this *{{ $structName }}) StmtSelect(column ...string) *dbr.SelectStmt {
-    s := this.MustConn().SQL
+    s := this.Executor().SQL()
     return s.Select(column...).From(this.Table())
 }
 
 func (this *{{ $structName }}) StmtUpdate() *dbr.UpdateStmt {
-    s := this.MustConn().SQL
+    s := this.Executor().SQL()
     return s.Update(this.Table())
 }
 
 func (this *{{ $structName }}) StmtDelete() *dbr.DeleteStmt {
-    s := this.MustConn().SQL
+    s := this.Executor().SQL()
     return s.DeleteFrom(this.Table())
 }
 
@@ -82,34 +97,34 @@ func (this *{{ $structName }}) Insert(objs ...*{{ $objName }}) (sql.Result, erro
         return nil, nil
     }
 
-    conn := this.MustConn()
+    exec := this.Executor()
 
     stmt := this.StmtInsertInto(this.obj.Fields()...)
     for _, obj := range objs {
         stmt = stmt.Values(obj.Values()...)
     }
 
-    return conn.ExecStmt(stmt)
+    return exec.ExecStmt(stmt)
 }
 
 func (this *{{ $structName }}) FindOneByPrimaryKey(key {{ .PrimaryKey.Type.GoType }}) (*{{ $objName }}, error) {
-    conn := this.MustConn()
+    exec := this.Executor()
 
-    return this.FindOne(conn.SQL.Eq("{{ .PrimaryKey.Column }}", key), nil)
+    return this.FindOne(exec.SQL().Eq("{{ .PrimaryKey.Column }}", key), nil)
 }
 
 func (this *{{ $structName }}) FindByPrimaryKeys(keys []{{ .PrimaryKey.Type.GoType }}, orders []db.Order) ([]*{{ $objName }}, error) {
-    conn := this.MustConn()
+    exec := this.Executor()
 
-    return this.Find(conn.SQL.Eq("{{ .PrimaryKey.Column }}", keys), nil, 0, 0, orders)
+    return this.Find(exec.SQL().Eq("{{ .PrimaryKey.Column }}", keys), nil, 0, 0, orders)
 }
 
-func (this *{{ $structName }}) FindOne(where dbr.Builder, args []interface{}) (*{{ $objName }}, error) {
-    conn := this.MustConn()
+func (this *{{ $structName }}) FindOne(where dbr.Builder, conds []interface{}) (*{{ $objName }}, error) {
+    exec := this.Executor()
 
-    stmt := conn.SQL.Select(this.obj.FieldAll()...).From(this.Table()).Where(where, args...)
+    stmt := exec.SQL().Select(this.obj.FieldAll()...).From(this.Table()).Where(where, conds...)
 
-    row := conn.QueryRowStmt(stmt)
+    row := exec.QueryRowStmt(stmt)
     res := &{{ $objName }}{}
     if err := res.ScanAll(row); err != nil {
         return nil, err
@@ -118,12 +133,12 @@ func (this *{{ $structName }}) FindOne(where dbr.Builder, args []interface{}) (*
     return res, nil
 }
 
-func (this *{{ $structName }}) Find(where dbr.Builder, args []interface{}, offset, limit uint64, orders []db.Order) ([]*{{ $objName }}, error) {
-    conn := this.MustConn()
+func (this *{{ $structName }}) Find(where dbr.Builder, conds []interface{}, offset, limit uint64, orders []db.Order) ([]*{{ $objName }}, error) {
+    exec := this.Executor()
 
-    stmt := conn.SQL.Select(this.obj.FieldAll()...).
+    stmt := exec.SQL().Select(this.obj.FieldAll()...).
         From(this.Table()).
-        Where(where, args...)
+        Where(where, conds...)
 
     if offset > 0 {
         stmt = stmt.Offset(offset)
@@ -144,7 +159,7 @@ func (this *{{ $structName }}) Find(where dbr.Builder, args []interface{}, offse
 
     res := make([]*{{ $objName }}, 0)
 
-    rows, err := conn.QueryStmt(stmt)
+    rows, err := exec.QueryStmt(stmt)
     if db.IsErrNoRows(err) {
         return res, nil
     }
@@ -166,7 +181,7 @@ func (this *{{ $structName }}) Find(where dbr.Builder, args []interface{}, offse
 }
 
 func (this *{{ $structName }}) UpdateObject(obj *Account, fields ...string) (int64, error) {
-    conn := this.MustConn()
+    exec := this.Executor()
 
     values := map[string]interface{}{}
     for _, field := range fields {
@@ -175,22 +190,22 @@ func (this *{{ $structName }}) UpdateObject(obj *Account, fields ...string) (int
 
     pk := obj.PrimaryKey()
 
-    return this.Update(conn.SQL.Eq(pk, obj.Value(pk)), nil, values)
+    return this.Update(exec.SQL().Eq(pk, obj.Value(pk)), nil, values)
 }
 
-func (this *{{ $structName }}) Update(where dbr.Builder, args []interface{}, values map[string]interface{}) (int64, error) {
+func (this *{{ $structName }}) Update(where dbr.Builder, conds []interface{}, values map[string]interface{}) (int64, error) {
     if len(values) == 0 {
         return 0, nil
     }
 
-    conn := this.MustConn()
+    exec := this.Executor()
 
     stmt := this.StmtUpdate().SetMap(values)
     if where != nil {
-        stmt = stmt.Where(where, args...)
+        stmt = stmt.Where(where, conds...)
     }
 
-    res, err := conn.ExecStmt(stmt)
+    res, err := exec.ExecStmt(stmt)
     if err != nil {
         return 0, err
     }
@@ -199,27 +214,27 @@ func (this *{{ $structName }}) Update(where dbr.Builder, args []interface{}, val
 }
 
 func (this *{{ $structName }}) DeleteObject(obj *Account) (int64, error) {
-    conn := this.MustConn()
+    exec := this.Executor()
 
     pk := obj.PrimaryKey()
 
-    return this.Delete(conn.SQL.Eq(pk, obj.Value(pk)), nil)
+    return this.Delete(exec.SQL().Eq(pk, obj.Value(pk)), nil)
 }
 
 func (this *{{ $structName }}) DeleteByPrimaryKeys(keys ...{{ .PrimaryKey.Type.GoType }}) (int64, error) {
-    conn := this.MustConn()
+    exec := this.Executor()
 
     pk := this.obj.PrimaryKey()
 
-    return this.Delete(conn.SQL.Eq(pk, keys), nil)
+    return this.Delete(exec.SQL().Eq(pk, keys), nil)
 }
 
-func (this *{{ $structName }}) Delete(where dbr.Builder, args []interface{}) (int64, error) {
-    conn := this.MustConn()
+func (this *{{ $structName }}) Delete(where dbr.Builder, conds []interface{}) (int64, error) {
+    exec := this.Executor()
 
-    stmt := this.StmtDelete().Where(where, args...)
+    stmt := this.StmtDelete().Where(where, conds...)
 
-    res, err := conn.ExecStmt(stmt)
+    res, err := exec.ExecStmt(stmt)
     if err != nil {
         return 0, err
     }
