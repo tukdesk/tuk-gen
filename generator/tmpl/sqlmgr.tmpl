@@ -6,6 +6,7 @@ package {{ .Package }}
 import (
     "database/sql"
 
+    "github.com/gocraft/dbr"
     "github.com/tukdesk/base/sql/db"
     "github.com/tukdesk/base/sql/types"
 )
@@ -14,6 +15,7 @@ var (
     _ sql.Result
     _ db.Conn
     _ types.Id
+    _ dbr.Dialect
 
     ins{{ $objName }}SQLMgr = &{{ $structName }}{}
 )
@@ -27,7 +29,7 @@ type {{ $structName }} struct {
 }
 
 func (*{{ $structName }}) Table() string {
-    return "{{ .Table }}"
+    return "{{ .TableIdentifier }}"
 }
 
 func (*{{ $structName }}) Engine() string {
@@ -35,6 +37,10 @@ func (*{{ $structName }}) Engine() string {
 }
 
 func (this *{{ $structName }}) Conn() (*db.Conn, error) {
+    if innerConn != nil {
+        return innerConn, nil
+    }
+
     conn, err := db.Get(this.Engine())
     if err != nil {
         return nil, err
@@ -43,19 +49,34 @@ func (this *{{ $structName }}) Conn() (*db.Conn, error) {
     return conn, nil
 }
 
+func (this *{{ $structName }}) MustConn() *db.Conn {
+    if innerConn != nil {
+        return innerConn
+    }
+
+    return db.MustGet(this.Engine())
+}
+
+func (this *{{ $structName }}) StmtInsertInto(column ...string) *dbr.InsertStmt {
+    s := this.MustConn().SQL
+    return s.InsertInto(this.Table()).Columns(column...)
+}
+
+func (this *{{ $structName }}) StmtSelect(column ...string) *dbr.SelectStmt {
+    s := this.MustConn().SQL
+    return s.Select(column...).From(this.Table())
+}
+
 func (this *{{ $structName }}) Insert(objs ...*{{ $objName }}) (sql.Result, error) {
     if len(objs) == 0 {
         return nil, nil
     }
 
-    conn, err := this.Conn()
-    if err != nil {
-        return nil, err
-    }
+    conn := this.MustConn()
 
-    stmt := conn.SQL.InsertInto(this.Table()).Columns(this.obj.Fields()...)
+    stmt := this.StmtInsertInto(this.obj.Fields()...)
     for _, obj := range objs {
-        stmt = stmt.Values(obj.ValueAll()...)
+        stmt = stmt.Values(obj.Values()...)
     }
 
     query, err := conn.SQL.Build(stmt)
@@ -67,15 +88,11 @@ func (this *{{ $structName }}) Insert(objs ...*{{ $objName }}) (sql.Result, erro
 }
 
 func (this *{{ $structName }}) FindOneByPrimaryKey(key {{ .PrimaryKey.Type.GoType }}) (*{{ $objName }}, error) {
-    conn, err := this.Conn()
-    if err != nil {
-        return nil, err
-    }
+    conn := this.MustConn()
 
     res := &{{ $objName }}{}
-    fields := this.obj.Fields()
-    stmt := conn.SQL.Select(fields...).
-        From(this.Table()).
+    fields := this.obj.FieldAll()
+    stmt := this.StmtSelect(fields...).
         Where(conn.SQL.Eq("{{ .PrimaryKey.Column }}", key))
 
     query, err := conn.SQL.Build(stmt)
@@ -93,15 +110,11 @@ func (this *{{ $structName }}) FindOneByPrimaryKey(key {{ .PrimaryKey.Type.GoTyp
 }
 
 func (this *{{ $structName }}) FindByPrimaryKeys(keys []{{ .PrimaryKey.Type.GoType }}, orders ...db.Order) ([]*{{ $objName }}, error) {
-    conn, err := this.Conn()
-    if err != nil {
-        return nil, err
-    }
+    conn := this.MustConn()
 
     res := make([]*{{ $objName }}, 0, len(keys))
-    fields := this.obj.Fields()
-    stmt := conn.SQL.Select(fields...).
-        From(this.Table()).
+    fields := this.obj.FieldAll()
+    stmt := this.StmtSelect(fields...).
         Where(conn.SQL.Eq("{{ .PrimaryKey.Column }}", keys))
 
     for _, order := range orders {

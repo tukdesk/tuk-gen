@@ -14,9 +14,18 @@ func Generate(opt Option) error {
 		return err
 	}
 
-	for _, data := range objects {
-		dir := filepath.Join(opt.OutputDir, pkgName)
+	dir := filepath.Join(opt.OutputDir, pkgName)
+	sqlConnFile := "gen_sql_conn.go"
 
+	if err := outputFile(dir, sqlConnFile, "sqlconn", struct {
+		Package string
+	}{
+		Package: pkgName,
+	}); err != nil {
+		return err
+	}
+
+	for _, data := range objects {
 		structFile := fmt.Sprintf("gen_%s_struct.go", data.Table)
 		if err := outputFile(dir, structFile, "struct", data); err != nil {
 			return err

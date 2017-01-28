@@ -20,6 +20,7 @@ func init() {
 	files := []string{
 		"generator/tmpl/struct.tmpl",
 		"generator/tmpl/sqlmgr.tmpl",
+		"generator/tmpl/sqlconn.tmpl",
 	}
 
 	for _, filename := range files {

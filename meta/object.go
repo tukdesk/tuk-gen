@@ -1,6 +1,7 @@
 package meta
 
 import (
+	"fmt"
 	"strings"
 )
 
@@ -32,4 +33,12 @@ func (this *Object) ColumnsJoin(sep string) string {
 	colunms := this.Columns()
 
 	return strings.Join(colunms, sep)
+}
+
+func (this *Object) TableIdentifier() string {
+	if this.DB == "" {
+		return this.Table
+	}
+
+	return fmt.Sprintf("%s.%s", this.DB, this.Table)
 }

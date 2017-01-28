@@ -26,6 +26,14 @@ type {{ $objName }} struct {
 
 func (*{{ $objName }}) Fields() []string {
     return []string{
+        {{ range $field := .Fields -}}
+        "{{ $field.Column }}",
+        {{ end }}
+    }
+}
+
+func (*{{ $objName }}) FieldAll() []string {
+    return []string{
         "{{ .PrimaryKey.Column }}",
         {{ range $field := .Fields -}}
         "{{ $field.Column }}",
@@ -75,6 +83,14 @@ func (this *{{ $objName }}) Value(field string) interface{} {
     {{ end }}
     default:
         panic(fmt.Errorf("unknown field %s", field))
+    }
+}
+
+func (this *{{ $objName }}) Values() []interface{} {
+    return []interface{} {
+        {{ range $field := .Fields -}}
+        this.{{ $field.Name }},
+        {{ end }}
     }
 }
 
