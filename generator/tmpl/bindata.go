@@ -86,7 +86,7 @@ func generatorTmplSql_script_tableTmpl() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "generator/tmpl/sql_script_table.tmpl", size: 429, mode: os.FileMode(420), modTime: time.Unix(1486109678, 0)}
+	info := bindataFileInfo{name: "generator/tmpl/sql_script_table.tmpl", size: 429, mode: os.FileMode(420), modTime: time.Unix(1486109836, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -126,7 +126,7 @@ func generatorTmplSqlmgrTmpl() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "generator/tmpl/sqlmgr.tmpl", size: 5836, mode: os.FileMode(420), modTime: time.Unix(1486094912, 0)}
+	info := bindataFileInfo{name: "generator/tmpl/sqlmgr.tmpl", size: 5836, mode: os.FileMode(420), modTime: time.Unix(1486109836, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }

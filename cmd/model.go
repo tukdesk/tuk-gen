@@ -46,7 +46,9 @@ var modelCmd = &cobra.Command{
 func init() {
 	modelCmd.Flags().StringVarP(&opt.OutputDir, "output", "o", "", "output dir")
 	modelCmd.Flags().StringVarP(&opt.Package, "package", "p", "", "package name")
+	modelCmd.Flags().StringVarP(&opt.DefaultDB, "database", "d", "", "default database")
 	modelCmd.Flags().StringVarP(&opt.DefaultEngine, "engine", "e", db.MYSQL, "default engine")
+	modelCmd.Flags().IntVarP(&opt.DefaultStringLength, "string-length", "", 100, "default length for string columns")
 	RootCmd.AddCommand(modelCmd)
 
 	// Here you will define your flags and configuration settings.
