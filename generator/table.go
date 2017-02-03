@@ -33,6 +33,10 @@ func (this *Table) DefLines() Lines {
 		}
 
 	case db.POSTGRESQL:
+		lines = append(lines, ColumnDefForPostgres(this.opt, this.PrimaryKey, true))
+		for _, f := range this.Fields {
+			lines = append(lines, ColumnDefForPostgres(this.opt, f, false))
+		}
 
 	}
 
@@ -52,7 +56,9 @@ func (this *Table) ExtraLines() []string {
 		)
 
 	case db.POSTGRESQL:
-
+		for _, i := range this.Object.Indexes {
+			lines = append(lines, IndexDefForPostgres(this.Object.TableIdentifier(), i))
+		}
 	}
 
 	return lines

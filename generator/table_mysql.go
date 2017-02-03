@@ -7,10 +7,6 @@ import (
 	"github.com/tukdesk/tuk-gen/meta"
 )
 
-const (
-	columnSep = " "
-)
-
 func ColumnDefForMySQL(opt Option, field meta.Field, isPrimary bool) string {
 	str := field.Column
 
@@ -33,7 +29,7 @@ func ColumnDefForMySQL(opt Option, field meta.Field, isPrimary bool) string {
 		str += " INT"
 		unsignedNumeric = true
 
-	case meta.FieldTypeUInt64, meta.FieldTypeId:
+	case meta.FieldTypeUInt64:
 		str += " BIGINT"
 		unsignedNumeric = true
 
@@ -50,7 +46,7 @@ func ColumnDefForMySQL(opt Option, field meta.Field, isPrimary bool) string {
 	case meta.FieldTypeInt32:
 		str += " INT"
 
-	case meta.FieldTypeInt64:
+	case meta.FieldTypeInt64, meta.FieldTypeId:
 		str += " BIGINT"
 
 	case meta.FieldTypeFloat64:
@@ -71,6 +67,9 @@ func ColumnDefForMySQL(opt Option, field meta.Field, isPrimary bool) string {
 
 	case meta.FieldTypeBytes:
 		str += " BLOB"
+
+	default:
+		panic(fmt.Errorf("unsupport data type %s of field %s for mysql", field.Type, field.Column))
 	}
 
 	if lengthAvailable {
