@@ -11,6 +11,7 @@ Account:
   uniques: [[Username]]
 
 Organization:
+  engine: "postgres"
   fields:
     - Type: enum
     - Slug: string

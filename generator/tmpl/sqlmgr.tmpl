@@ -40,7 +40,11 @@ func (*{{ $structName }}) Table() string {
 }
 
 func (*{{ $structName }}) Engine() string {
+    {{ if ne .Engine "" -}}
     return "{{ .Engine }}"
+    {{ else -}}
+    return db.DefaultEngine()
+    {{ end -}}
 }
 
 func (this *{{ $structName }}) Conn() (*db.Conn, error) {
