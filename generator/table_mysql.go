@@ -7,7 +7,7 @@ import (
 	"github.com/tukdesk/tuk-gen/meta"
 )
 
-func ColumnDefForMySQL(opt Option, field meta.Field, isPrimary bool) string {
+func ColumnDefForMySQL(opt Option, field meta.Field) string {
 	str := field.Column
 
 	length := field.Length
@@ -89,8 +89,12 @@ func ColumnDefForMySQL(opt Option, field meta.Field, isPrimary bool) string {
 		str += " UNSIGNED"
 	}
 
-	if isPrimary {
+	if field.IsPrimaryKey {
 		str += " AUTO_INCREMENT PRIMARY KEY"
+	}
+
+	if !field.IsPrimaryKey && !field.Nullable {
+		str += " NOT NULL"
 	}
 
 	return str

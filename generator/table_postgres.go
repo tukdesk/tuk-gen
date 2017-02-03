@@ -14,7 +14,7 @@ ON %s
 (%s)
 `
 
-func ColumnDefForPostgres(opt Option, field meta.Field, isPrimary bool) string {
+func ColumnDefForPostgres(opt Option, field meta.Field) string {
 	str := field.Column
 
 	length := field.Length
@@ -67,8 +67,12 @@ func ColumnDefForPostgres(opt Option, field meta.Field, isPrimary bool) string {
 		panic(fmt.Errorf("unsupport data type %s of field %s for postgres", field.Type, field.Column))
 	}
 
-	if isPrimary {
+	if field.IsPrimaryKey {
 		str += " PRIMARY KEY"
+	}
+
+	if !field.IsPrimaryKey && !field.Nullable {
+		str += " NOT NULL"
 	}
 
 	return str

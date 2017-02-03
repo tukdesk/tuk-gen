@@ -23,9 +23,9 @@ func (this *Table) DefLines() Lines {
 
 	switch engine {
 	case db.MYSQL:
-		lines = append(lines, ColumnDefForMySQL(this.opt, this.PrimaryKey, true))
+		lines = append(lines, ColumnDefForMySQL(this.opt, this.PrimaryKey))
 		for _, f := range this.Fields {
-			lines = append(lines, ColumnDefForMySQL(this.opt, f, false))
+			lines = append(lines, ColumnDefForMySQL(this.opt, f))
 		}
 
 		for _, i := range this.Indexes {
@@ -33,9 +33,9 @@ func (this *Table) DefLines() Lines {
 		}
 
 	case db.POSTGRESQL:
-		lines = append(lines, ColumnDefForPostgres(this.opt, this.PrimaryKey, true))
+		lines = append(lines, ColumnDefForPostgres(this.opt, this.PrimaryKey))
 		for _, f := range this.Fields {
-			lines = append(lines, ColumnDefForPostgres(this.opt, f, false))
+			lines = append(lines, ColumnDefForPostgres(this.opt, f))
 		}
 
 	}
