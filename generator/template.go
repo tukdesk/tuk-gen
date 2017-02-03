@@ -21,6 +21,7 @@ func init() {
 		"generator/tmpl/struct.tmpl",
 		"generator/tmpl/sqlmgr.tmpl",
 		"generator/tmpl/sqlconn.tmpl",
+		"generator/tmpl/sql_script_table.tmpl",
 	}
 
 	for _, filename := range files {
@@ -35,7 +36,31 @@ func init() {
 	}
 }
 
-func outputFile(dir, filename, tplName string, data interface{}) error {
+func outputNormalFile(dir, filename, tplName string, data interface{}) error {
+	buf := new(bytes.Buffer)
+	if err := tpl.ExecuteTemplate(buf, tplName, data); err != nil {
+		return err
+	}
+
+	return writeToFile(buf, dir, filename)
+}
+
+func outputGoFile(dir, filename, tplName string, data interface{}) error {
+	buf := new(bytes.Buffer)
+	if err := tpl.ExecuteTemplate(buf, tplName, data); err != nil {
+		return err
+	}
+
+	formatted, err := format.Source(buf.Bytes())
+	if err != nil {
+		fmt.Println(buf.String())
+		return err
+	}
+
+	return writeToFile(bytes.NewReader(formatted), dir, filename)
+}
+
+func writeToFile(r io.Reader, dir, filename string) error {
 	if err := os.MkdirAll(dir, 0755); err != nil {
 		return err
 	}
@@ -49,18 +74,7 @@ func outputFile(dir, filename, tplName string, data interface{}) error {
 
 	defer file.Close()
 
-	buf := new(bytes.Buffer)
-	if err := tpl.ExecuteTemplate(buf, tplName, data); err != nil {
-		return err
-	}
-
-	formatted, err := format.Source(buf.Bytes())
-	if err != nil {
-		fmt.Println(buf.String())
-		return err
-	}
-
-	_, err = io.Copy(file, bytes.NewReader(formatted))
+	_, err = io.Copy(file, r)
 
 	return err
 }
