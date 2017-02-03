@@ -5,9 +5,13 @@ import (
 )
 
 type Option struct {
-	Input     string
-	Package   string
-	OutputDir string
+	Input               string
+	Package             string
+	OutputDir           string
+	ExportTableFile     bool
+	DefaultDB           string
+	DefaultEngine       string
+	DefaultStringLength int
 }
 
 func (this *Option) PackageName() string {

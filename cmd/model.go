@@ -18,6 +18,7 @@ import (
 	"log"
 
 	"github.com/spf13/cobra"
+	"github.com/tukdesk/base/sql/db"
 	"github.com/tukdesk/tuk-gen/generator"
 )
 
@@ -45,6 +46,7 @@ var modelCmd = &cobra.Command{
 func init() {
 	modelCmd.Flags().StringVarP(&opt.OutputDir, "output", "o", "", "output dir")
 	modelCmd.Flags().StringVarP(&opt.Package, "package", "p", "", "package name")
+	modelCmd.Flags().StringVarP(&opt.DefaultEngine, "engine", "e", db.MYSQL, "default engine")
 	RootCmd.AddCommand(modelCmd)
 
 	// Here you will define your flags and configuration settings.
