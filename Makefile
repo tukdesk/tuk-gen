@@ -11,4 +11,5 @@ gen:
 
 example: gen build
 	tuk-gen model -o ./example -p model ./example/models.yaml
+	cd example/model && go install 
 

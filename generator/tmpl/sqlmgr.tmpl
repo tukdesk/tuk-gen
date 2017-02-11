@@ -130,7 +130,10 @@ func (this *{{ $structName }}) FindByPrimaryKeys(keys []{{ .PrimaryKey.Type.GoTy
 func (this *{{ $structName }}) FindOne(where db.Where) (*{{ $objName }}, error) {
     exec := this.Executor()
 
-    stmt := this.StmtSelect(this.obj.FieldAll()...).From(this.Table()).Where(where.Where, where.Conds...)
+    stmt := this.StmtSelect(this.obj.FieldAll()...).From(this.Table())
+    if where.Where != nil {
+        stmt = stmt.Where(where.Where, where.Conds...)
+    }
 
     row := exec.QueryRowStmt(stmt)
     res := &{{ $objName }}{}
@@ -144,9 +147,10 @@ func (this *{{ $structName }}) FindOne(where db.Where) (*{{ $objName }}, error) 
 func (this *{{ $structName }}) Find(where db.Where, offset, limit uint64, orders ...db.Order) ([]*{{ $objName }}, error) {
     exec := this.Executor()
 
-    stmt := this.StmtSelect(this.obj.FieldAll()...).
-        From(this.Table()).
-        Where(where.Where, where.Conds...)
+    stmt := this.StmtSelect(this.obj.FieldAll()...).From(this.Table())
+    if where.Where != nil {
+        stmt = stmt.Where(where.Where, where.Conds...)
+    }
 
     if offset > 0 {
         stmt = stmt.Offset(offset)
@@ -238,7 +242,10 @@ func (this *{{ $structName }}) DeleteByPrimaryKeys(keys ...{{ .PrimaryKey.Type.G
 func (this *{{ $structName }}) Delete(where db.Where) (int64, error) {
     exec := this.Executor()
 
-    stmt := this.StmtDelete().Where(where.Where, where.Conds...)
+    stmt := this.StmtDelete()
+    if where.Where != nil {
+        stmt = stmt.Where(where.Where, where.Conds...)
+    }
 
     res, err := exec.ExecStmt(stmt)
     if err != nil {
