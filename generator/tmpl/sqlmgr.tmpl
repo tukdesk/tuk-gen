@@ -146,7 +146,7 @@ func (this *{{ $structName }}) FindOne(fields []string, where db.Where, offset u
         fields = this.Object.FieldAll()
     }
 
-    stmt := this.StmtSelect(fields...).From(this.Table()).Limit(1)
+    stmt := this.StmtSelect(fields...).Limit(1)
     if where.Where != nil {
         stmt = stmt.Where(where.Where, where.Conds...)
     }
@@ -180,7 +180,7 @@ func (this *{{ $structName }}) Find(fields []string, where db.Where, offset, lim
         fields = this.Object.FieldAll()
     }
 
-    stmt := this.StmtSelect(fields...).From(this.Table())
+    stmt := this.StmtSelect(fields...)
     if where.Where != nil {
         stmt = stmt.Where(where.Where, where.Conds...)
     }
@@ -223,6 +223,21 @@ func (this *{{ $structName }}) Find(fields []string, where db.Where, offset, lim
     }
 
     return res, nil
+}
+
+func (this *{{ $structName }}) Count(where db.Where) (int64, error) {
+    exec := this.Executor()
+
+    stmt := this.StmtSelect("count(1)")
+    if where.Where != nil {
+        stmt = stmt.Where(where.Where, where.Conds...)
+    }
+
+    row := exec.QueryRowStmt(stmt)
+    var count int64
+    err := row.Scan(&count)
+
+    return count, err
 }
 
 func (this *{{ $structName }}) UpdateObject(obj *{{ $objName }}, fields ...string) (int64, error) {
