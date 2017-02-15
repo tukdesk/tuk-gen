@@ -33,6 +33,7 @@ func (this *Enum) Scan(val interface{}) error {
 		}
 
 		*this = Enum(i)
+		return nil
 	}
 
 	return fmt.Errorf("invalid value type %T", val)

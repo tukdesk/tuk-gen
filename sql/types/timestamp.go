@@ -40,6 +40,7 @@ func (this *Timestamp) Scan(val interface{}) error {
 		}
 
 		*this = Timestamp(i)
+		return nil
 	}
 
 	return fmt.Errorf("invalid value type %T", val)

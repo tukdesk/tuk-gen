@@ -33,6 +33,7 @@ func (this *Id) Scan(val interface{}) error {
 		}
 
 		*this = Id(i)
+		return nil
 	}
 
 	return fmt.Errorf("invalid value type %T", val)
