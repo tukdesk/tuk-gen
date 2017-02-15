@@ -63,6 +63,9 @@ func ColumnDefForPostgres(opt Option, field meta.Field) string {
 	case meta.FieldTypeBytes:
 		str += " BYTEA"
 
+	case meta.FieldTypeText:
+		str += " TEXT"
+
 	default:
 		panic(fmt.Errorf("unsupport data type %s of field %s for postgres", field.Type, field.Column))
 	}

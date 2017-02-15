@@ -68,6 +68,10 @@ func ColumnDefForMySQL(opt Option, field meta.Field) string {
 	case meta.FieldTypeBytes:
 		str += " BLOB"
 
+	case meta.FieldTypeText:
+		str += " TEXT"
+		lengthAvailable = false
+
 	default:
 		panic(fmt.Errorf("unsupport data type %s of field %s for mysql", field.Type, field.Column))
 	}

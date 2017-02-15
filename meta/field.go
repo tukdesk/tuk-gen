@@ -45,6 +45,9 @@ func (this FieldType) GoType() string {
 	case FieldTypeBytes:
 		return "[]byte"
 
+	case FieldTypeText:
+		return "string"
+
 	default:
 		return string(this)
 	}
@@ -52,7 +55,7 @@ func (this FieldType) GoType() string {
 
 func (this FieldType) GoZero() string {
 	switch this {
-	case FieldTypeString:
+	case FieldTypeString, FieldTypeText:
 		return "\"\""
 
 	case FieldTypeFloat64:
@@ -89,6 +92,7 @@ const (
 	FieldTypeTimestamp           = "timestamp"
 	FieldTypeDatetime            = "datetime"
 	FieldTypeBytes               = "bytes"
+	FieldTypeText                = "text"
 )
 
 var availableFieldTypes = []FieldType{
@@ -104,6 +108,7 @@ var availableFieldTypes = []FieldType{
 	FieldTypeTimestamp,
 	FieldTypeDatetime,
 	FieldTypeBytes,
+	FieldTypeText,
 }
 
 type Field struct {

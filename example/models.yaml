@@ -93,7 +93,7 @@ Point:
   fields:
     - Time: timestamp
     - Title: string
-    - Description: string
+    - Description: text
     - CreatedAt: timestamp
     - UpdatedAt: timestamp
     - Deleted: bool
