@@ -166,7 +166,7 @@ func (this *{{ $structName }}) FindOne(fields []string, where db.Where, offset u
 
     row := exec.QueryRowStmt(stmt)
     res := &{{ $objName }}{}
-    if err := res.ScanAll(row); err != nil {
+    if err := res.Scan(row, fields...); err != nil {
         return nil, err
     }
 
@@ -215,7 +215,7 @@ func (this *{{ $structName }}) Find(fields []string, where db.Where, offset, lim
 
     for rows.Next() {
         obj := &{{ $objName }}{}
-        if err := obj.ScanAll(rows); err != nil {
+        if err := obj.Scan(rows, fields...); err != nil {
             return nil, err
         }
 
