@@ -31,7 +31,7 @@ func {{ $objName }}SQLMgr() *{{ $structName }} {
 }
 
 type {{ $structName }} struct {
-    obj *{{ $objName }}
+    Object *{{ $objName }}
     executor db.Executor
 }
 
@@ -107,7 +107,7 @@ func (this *{{ $structName }}) Insert(objs ...*{{ $objName }}) (sql.Result, erro
 
     exec := this.Executor()
 
-    stmt := this.StmtInsertInto(this.obj.Fields()...)
+    stmt := this.StmtInsertInto(this.Object.Fields()...)
     for _, obj := range objs {
         stmt = stmt.Values(obj.Values()...)
     }
@@ -115,24 +115,53 @@ func (this *{{ $structName }}) Insert(objs ...*{{ $objName }}) (sql.Result, erro
     return exec.ExecStmt(stmt)
 }
 
-func (this *{{ $structName }}) FindOneByPrimaryKey(key {{ .PrimaryKey.Type.GoType }}) (*{{ $objName }}, error) {
+func (this *{{ $structName }}) FindOneByPrimaryKey(fields []string, key {{ .PrimaryKey.Type.GoType }}) (*{{ $objName }}, error) {
     where := this.Where(this.SQL().Eq("{{ .PrimaryKey.Column }}", key))
 
-    return this.FindOne(where)
+    return this.FindOne(fields, where, 0)
 }
 
-func (this *{{ $structName }}) FindByPrimaryKeys(keys []{{ .PrimaryKey.Type.GoType }}, orders ...db.Order) ([]*{{ $objName }}, error) {
+func (this *{{ $structName }}) FindFullOneByPrimaryKey(key {{ .PrimaryKey.Type.GoType }}) (*{{ $objName }}, error) {
+    where := this.Where(this.SQL().Eq("{{ .PrimaryKey.Column }}", key))
+
+    return this.FindOne(nil, where, 0)
+}
+
+func (this *{{ $structName }}) FindByPrimaryKeys(fields []string, keys []{{ .PrimaryKey.Type.GoType }}, orders ...db.Order) ([]*{{ $objName }}, error) {
     where := this.Where(this.SQL().Eq("{{ .PrimaryKey.Column }}", keys))
 
-    return this.Find(where, 0, 0, orders...)
+    return this.Find(fields, where, 0, 0, orders...)
 }
 
-func (this *{{ $structName }}) FindOne(where db.Where) (*{{ $objName }}, error) {
+func (this *{{ $structName }}) FindFullByPrimaryKeys(keys []{{ .PrimaryKey.Type.GoType }}, orders ...db.Order) ([]*{{ $objName }}, error) {
+    where := this.Where(this.SQL().Eq("{{ .PrimaryKey.Column }}", keys))
+
+    return this.Find(nil, where, 0, 0, orders...)
+}
+
+func (this *{{ $structName }}) FindOne(fields []string, where db.Where, offset uint64, orders ...db.Order) (*{{ $objName }}, error) {
     exec := this.Executor()
 
-    stmt := this.StmtSelect(this.obj.FieldAll()...).From(this.Table())
+    if len(fields) == 0 {
+        fields = this.Object.FieldAll()
+    }
+
+    stmt := this.StmtSelect(fields...).From(this.Table()).Limit(1)
     if where.Where != nil {
         stmt = stmt.Where(where.Where, where.Conds...)
+    }
+
+    if offset > 0 {
+        stmt = stmt.Offset(offset)
+    }
+
+    for _, order := range orders {
+        if order.DESC {
+            stmt = stmt.OrderDesc(order.Column)
+            continue
+        }
+
+        stmt = stmt.OrderAsc(order.Column)
     }
 
     row := exec.QueryRowStmt(stmt)
@@ -144,10 +173,14 @@ func (this *{{ $structName }}) FindOne(where db.Where) (*{{ $objName }}, error) 
     return res, nil
 }
 
-func (this *{{ $structName }}) Find(where db.Where, offset, limit uint64, orders ...db.Order) ([]*{{ $objName }}, error) {
+func (this *{{ $structName }}) Find(fields []string, where db.Where, offset, limit uint64, orders ...db.Order) ([]*{{ $objName }}, error) {
     exec := this.Executor()
 
-    stmt := this.StmtSelect(this.obj.FieldAll()...).From(this.Table())
+    if len(fields) == 0 {
+        fields = this.Object.FieldAll()
+    }
+
+    stmt := this.StmtSelect(fields...).From(this.Table())
     if where.Where != nil {
         stmt = stmt.Where(where.Where, where.Conds...)
     }
@@ -233,7 +266,7 @@ func (this *{{ $structName }}) DeleteObject(obj *Account) (int64, error) {
 }
 
 func (this *{{ $structName }}) DeleteByPrimaryKeys(keys ...{{ .PrimaryKey.Type.GoType }}) (int64, error) {
-    pk := this.obj.PrimaryKey()
+    pk := this.Object.PrimaryKey()
 
     where := this.Where(this.SQL().Eq(pk, keys))
     return this.Delete(where)
