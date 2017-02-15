@@ -225,7 +225,7 @@ func (this *{{ $structName }}) Find(fields []string, where db.Where, offset, lim
     return res, nil
 }
 
-func (this *{{ $structName }}) UpdateObject(obj *Account, fields ...string) (int64, error) {
+func (this *{{ $structName }}) UpdateObject(obj *{{ $objName }}, fields ...string) (int64, error) {
     values := map[string]interface{}{}
     for _, field := range fields {
         values[field] = obj.Value(field)
@@ -258,7 +258,7 @@ func (this *{{ $structName }}) Update(where db.Where, values map[string]interfac
     return res.RowsAffected()
 }
 
-func (this *{{ $structName }}) DeleteObject(obj *Account) (int64, error) {
+func (this *{{ $structName }}) DeleteObject(obj *{{ $objName }}) (int64, error) {
     pk := obj.PrimaryKey()
 
     where := this.Where(this.SQL().Eq(pk, obj.Value(pk)))
