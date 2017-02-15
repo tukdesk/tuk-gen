@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+	"strconv"
 
 	"database/sql"
 	"database/sql/driver"
@@ -24,6 +25,14 @@ func (this *Id) Scan(val interface{}) error {
 	case int64:
 		*this = Id(val)
 		return nil
+
+	case []byte:
+		i, err := strconv.Atoi(string(val))
+		if err != nil {
+			return fmt.Errorf("fail to conv %s to int", string(val))
+		}
+
+		*this = Id(i)
 	}
 
 	return fmt.Errorf("invalid value type %T", val)

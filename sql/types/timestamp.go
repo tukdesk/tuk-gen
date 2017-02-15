@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+	"strconv"
 	"time"
 
 	"database/sql"
@@ -31,6 +32,14 @@ func (this *Timestamp) Scan(val interface{}) error {
 	case time.Time:
 		*this = Timestamp(val.UnixNano())
 		return nil
+
+	case []byte:
+		i, err := strconv.Atoi(string(val))
+		if err != nil {
+			return fmt.Errorf("fail to conv %s to int", string(val))
+		}
+
+		*this = Timestamp(i)
 	}
 
 	return fmt.Errorf("invalid value type %T", val)
