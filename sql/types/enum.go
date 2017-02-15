@@ -15,6 +15,10 @@ var (
 
 type Enum int32
 
+func (this Enum) Int32() int32 {
+	return int32(this)
+}
+
 func (this *Enum) Scan(val interface{}) error {
 	switch val := val.(type) {
 	case int64:

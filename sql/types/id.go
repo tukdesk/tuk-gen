@@ -15,6 +15,10 @@ var (
 
 type Id int64
 
+func (this Id) Int64() int64 {
+	return int64(this)
+}
+
 func (this *Id) Scan(val interface{}) error {
 	switch val := val.(type) {
 	case int64:
