@@ -18,8 +18,8 @@ import (
 	"log"
 
 	"github.com/spf13/cobra"
-	"github.com/tukdesk/base/sql/db"
 	"github.com/tukdesk/tuk-gen/generator"
+	"github.com/tukdesk/tuk-gen/sql/db"
 )
 
 var opt generator.Option

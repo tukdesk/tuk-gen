@@ -1,8 +1,8 @@
 package generator
 
 import (
-	"github.com/tukdesk/base/sql/db"
 	"github.com/tukdesk/tuk-gen/meta"
+	"github.com/tukdesk/tuk-gen/sql/db"
 )
 
 type Lines []string

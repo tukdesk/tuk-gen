@@ -3,8 +3,8 @@ package parser
 import (
 	"fmt"
 
-	"github.com/tukdesk/base/util"
 	"github.com/tukdesk/tuk-gen/meta"
+	"github.com/tukdesk/tuk-gen/util"
 )
 
 func init() {
