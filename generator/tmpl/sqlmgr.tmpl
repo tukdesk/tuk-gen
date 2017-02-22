@@ -213,6 +213,8 @@ func (this *{{ $structName }}) Find(fields []string, where db.Where, offset, lim
         return nil, err
     }
 
+    defer rows.Close()
+
     for rows.Next() {
         obj := &{{ $objName }}{}
         if err := obj.Scan(rows, fields...); err != nil {
