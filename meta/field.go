@@ -1,6 +1,7 @@
 package meta
 
 import (
+	"fmt"
 	"regexp"
 )
 
@@ -75,6 +76,39 @@ func (this FieldType) GoZero() string {
 	}
 }
 
+func (this FieldType) HasDefault() bool {
+	switch this {
+	case FieldTypeDatetime, FieldTypeBytes, FieldTypeText:
+		return false
+
+	default:
+		return true
+	}
+}
+
+func (this FieldType) AutoIncrable() bool {
+	switch this {
+	case FieldTypeString, FieldTypeFloat64, FieldTypeBool, FieldTypeEnum, FieldTypeTimestamp, FieldTypeDatetime, FieldTypeBytes, FieldTypeText:
+		return false
+
+	default:
+		return true
+	}
+}
+
+func (this FieldType) ZeroValue() interface{} {
+	switch this {
+	case FieldTypeString:
+		return ""
+
+	case FieldTypeFloat64:
+		return 0.0
+
+	default:
+		return 0
+	}
+}
+
 const (
 	FieldTypeId        FieldType = "id"
 	FieldTypeString              = "string"
@@ -118,5 +152,16 @@ type Field struct {
 	Length       int
 	Nullable     bool
 	IsPrimaryKey bool
+	AutoIncr     bool
 	DefaultValue interface{}
+}
+
+func (this *Field) Default() string {
+	switch this.Type {
+	case FieldTypeString:
+		return fmt.Sprintf("%q", this.DefaultValue)
+
+	default:
+		return fmt.Sprintf("%v", this.DefaultValue)
+	}
 }

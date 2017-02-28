@@ -16,7 +16,8 @@ func init() {
 }
 
 const (
-	defaultPrimaryKey = meta.FieldName("Id")
+	defaultPrimaryKey     = meta.FieldName("Id")
+	defaultPrimaryKeyType = "id"
 )
 
 func DefaultDefParser(name string, def Def) (*meta.Object, error) {
@@ -37,10 +38,22 @@ func DefaultDefParser(name string, def Def) (*meta.Object, error) {
 		pk = defaultPrimaryKey
 	}
 
+	pkTypeStr := def.PrimaryKeyType
+	if pkTypeStr == "" {
+		pkTypeStr = defaultPrimaryKeyType
+	}
+
+	pkType := meta.FieldType(pkTypeStr)
+	if !pkType.Valid() {
+		return nil, fmt.Errorf("invalid primary key type %s", def.PrimaryKeyType)
+	}
+
 	obj.PrimaryKey = meta.Field{
 		Name:         pk,
-		Type:         meta.FieldTypeId,
+		Type:         pkType,
 		IsPrimaryKey: true,
+		AutoIncr:     !def.PrimaryKeyNoIncr,
+		Length:       def.PrimaryKeyLength,
 		Column:       util.Camel2Snake(pk.String()),
 	}
 

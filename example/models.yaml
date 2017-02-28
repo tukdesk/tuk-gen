@@ -1,11 +1,13 @@
 # 账号
 Account:
   db: "test"
+  pk_no_incr: true
   fields:
     - Username: string
       length: 30
     - Password: string
       length: 64
+      default: "test password"
     - CreatedAt: timestamp
     - UpdatedAt: timestamp
   uniques: [[Username]]
@@ -23,6 +25,8 @@ Organization:
   indexes: [[CreatedAt], [UpdatedAt, DESC]]
 
 OrganizationMember:
+  pk_type: string
+  pk_length: 32
   fields:
     - OrganizationId: id
     - AccountId: id
@@ -66,6 +70,7 @@ Desk:
     - CreatedAt: timestamp
     - UpdatedAt: timestamp
     - Deleted: bool
+      default: 0
     - DeletedAt: timestamp
 
 DeskScheduleRelation:

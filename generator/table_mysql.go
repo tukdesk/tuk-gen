@@ -94,11 +94,18 @@ func ColumnDefForMySQL(opt Option, field meta.Field) string {
 	}
 
 	if field.IsPrimaryKey {
-		str += " AUTO_INCREMENT PRIMARY KEY"
+		if field.Type.AutoIncrable() && field.AutoIncr {
+			str += " AUTO_INCREMENT"
+		}
+
+		str += " PRIMARY KEY"
 	}
 
 	if !field.IsPrimaryKey && !field.Nullable {
 		str += " NOT NULL"
+		if field.Type.HasDefault() && field.DefaultValue != nil {
+			str += " DEFAULT " + field.Default()
+		}
 	}
 
 	return str
