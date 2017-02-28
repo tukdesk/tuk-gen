@@ -2,6 +2,7 @@ package parser
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/tukdesk/tuk-gen/meta"
 	"github.com/tukdesk/tuk-gen/util"
@@ -92,7 +93,9 @@ func DefaultDefParser(name string, def Def) (*meta.Object, error) {
 				return nil, fmt.Errorf("#%d field %s in unique index not found", i, fName)
 			}
 
-			idx.Fields = append(idx.Fields, field)
+			idx.Fields = append(idx.Fields, meta.IndexField{
+				Field: field,
+			})
 		}
 
 		obj.Indexes = append(obj.Indexes, idx)
@@ -103,23 +106,24 @@ func DefaultDefParser(name string, def Def) (*meta.Object, error) {
 			return nil, fmt.Errorf("#%d empty normal index", i)
 		}
 
-		var desc bool
-		if nIdxFields[len(nIdxFields)-1] == "DESC" {
-			desc = true
-			nIdxFields = nIdxFields[:len(nIdxFields)-1]
-		}
-
-		idx := meta.Index{
-			IsDesc: desc,
-		}
+		idx := meta.Index{}
 
 		for _, fName := range nIdxFields {
+			var desc bool
+			if strings.HasPrefix(fName, "-") {
+				desc = true
+				fName = fName[1:]
+			}
+
 			field, ok := obj.FieldMap[fName]
 			if !ok {
 				return nil, fmt.Errorf("#%d field %s in normal index not found", i, fName)
 			}
 
-			idx.Fields = append(idx.Fields, field)
+			idx.Fields = append(idx.Fields, meta.IndexField{
+				Field: field,
+				Desc:  desc,
+			})
 		}
 
 		obj.Indexes = append(obj.Indexes, idx)
@@ -130,23 +134,26 @@ func DefaultDefParser(name string, def Def) (*meta.Object, error) {
 			return nil, fmt.Errorf("#%d empty sparse index", i)
 		}
 
-		var desc bool
-		if sIdxFields[len(sIdxFields)-1] == "DESC" {
-			desc = true
-			sIdxFields = sIdxFields[:len(sIdxFields)-1]
-		}
-
 		idx := meta.Index{
-			IsDesc: desc,
+			IsSparse: true,
 		}
 
 		for _, fName := range sIdxFields {
+			var desc bool
+			if strings.HasPrefix(fName, "-") {
+				desc = true
+				fName = fName[1:]
+			}
+
 			field, ok := obj.FieldMap[fName]
 			if !ok {
 				return nil, fmt.Errorf("#%d field %s in sparse index not found", i, fName)
 			}
 
-			idx.Fields = append(idx.Fields, field)
+			idx.Fields = append(idx.Fields, meta.IndexField{
+				Field: field,
+				Desc:  desc,
+			})
 		}
 
 		obj.Indexes = append(obj.Indexes, idx)

@@ -113,8 +113,15 @@ func ColumnDefForMySQL(opt Option, field meta.Field) string {
 
 func IndexDefForMySQL(index meta.Index) string {
 	names := make([]string, len(index.Fields))
+	idxDefs := make([]string, len(index.Fields))
 	for i, f := range index.Fields {
 		names[i] = f.Column
+
+		c := f.Column
+		if f.Desc {
+			c += " DESC"
+		}
+		idxDefs[i] = c
 	}
 
 	var typStr string
@@ -124,13 +131,8 @@ func IndexDefForMySQL(index meta.Index) string {
 		typStr = "INDEX"
 	}
 
-	var sortStr string
-	if index.IsDesc {
-		sortStr = " DESC"
-	}
-
 	idxName := fmt.Sprintf("ix_%s", strings.Join(names, "_"))
 
-	columns := fmt.Sprintf("(%s%s)", strings.Join(names, ", "), sortStr)
+	columns := fmt.Sprintf("(%s)", strings.Join(idxDefs, ", "))
 	return fmt.Sprintf("%s %s %s", typStr, idxName, columns)
 }

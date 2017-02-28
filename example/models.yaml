@@ -11,7 +11,7 @@ Account:
     - CreatedAt: timestamp
     - UpdatedAt: timestamp
   uniques: [[Username]]
-  indexes: [[CreatedAt, DESC], [UpdatedAt]]
+  indexes: [[-CreatedAt, UpdatedAt]]
 
 Organization:
   engine: "postgres"
@@ -22,7 +22,7 @@ Organization:
     - CreatedAt: timestamp
     - UpdatedAt: timestamp
   uniques: [[Slug]]
-  indexes: [[CreatedAt], [UpdatedAt, DESC]]
+  indexes: [[CreatedAt, -UpdatedAt]]
 
 OrganizationMember:
   pk_type: string
