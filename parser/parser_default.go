@@ -90,7 +90,15 @@ func DefaultDefParser(name string, def Def) (*meta.Object, error) {
 			return nil, fmt.Errorf("#%d empty normal index", i)
 		}
 
-		idx := meta.Index{}
+		var desc bool
+		if nIdxFields[len(nIdxFields)-1] == "DESC" {
+			desc = true
+			nIdxFields = nIdxFields[:len(nIdxFields)-1]
+		}
+
+		idx := meta.Index{
+			IsDesc: desc,
+		}
 
 		for _, fName := range nIdxFields {
 			field, ok := obj.FieldMap[fName]
@@ -109,7 +117,15 @@ func DefaultDefParser(name string, def Def) (*meta.Object, error) {
 			return nil, fmt.Errorf("#%d empty sparse index", i)
 		}
 
-		idx := meta.Index{}
+		var desc bool
+		if sIdxFields[len(sIdxFields)-1] == "DESC" {
+			desc = true
+			sIdxFields = sIdxFields[:len(sIdxFields)-1]
+		}
+
+		idx := meta.Index{
+			IsDesc: desc,
+		}
 
 		for _, fName := range sIdxFields {
 			field, ok := obj.FieldMap[fName]

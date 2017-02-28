@@ -9,6 +9,7 @@ Account:
     - CreatedAt: timestamp
     - UpdatedAt: timestamp
   uniques: [[Username]]
+  indexes: [[CreatedAt, DESC], [UpdatedAt]]
 
 Organization:
   engine: "postgres"

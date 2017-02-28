@@ -117,8 +117,13 @@ func IndexDefForMySQL(index meta.Index) string {
 		typStr = "INDEX"
 	}
 
+	var sortStr string
+	if index.IsDesc {
+		sortStr = " DESC"
+	}
+
 	idxName := fmt.Sprintf("ix_%s", strings.Join(names, "_"))
 
-	columns := fmt.Sprintf("(%s)", strings.Join(names, ", "))
+	columns := fmt.Sprintf("(%s%s)", strings.Join(names, ", "), sortStr)
 	return fmt.Sprintf("%s %s %s", typStr, idxName, columns)
 }
