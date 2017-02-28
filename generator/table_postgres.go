@@ -11,7 +11,7 @@ const postgresIndexFormat = `;
 
 CREATE%s INDEX %s IF NOT EXISTS
 ON %s
-(%s)
+(%s%s)
 `
 
 func ColumnDefForPostgres(opt Option, field meta.Field) string {
@@ -92,9 +92,14 @@ func IndexDefForPostgres(table string, index meta.Index) string {
 		unique = " UNIQUE"
 	}
 
+	sort := ""
+	if index.IsDesc {
+		sort = " DESC"
+	}
+
 	idxName := fmt.Sprintf("ix_%s", strings.Join(names, "_"))
 
 	columns := strings.Join(names, ", ")
 
-	return fmt.Sprintf(postgresIndexFormat, unique, idxName, table, columns)
+	return fmt.Sprintf(postgresIndexFormat, unique, idxName, table, columns, sort)
 }

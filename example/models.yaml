@@ -20,6 +20,7 @@ Organization:
     - CreatedAt: timestamp
     - UpdatedAt: timestamp
   uniques: [[Slug]]
+  indexes: [[CreatedAt], [UpdatedAt, DESC]]
 
 OrganizationMember:
   fields:
