@@ -123,6 +123,39 @@ func DefaultDefParser(name string, def Def) (*meta.Object, error) {
 		obj.Indexes = append(obj.Indexes, idx)
 	}
 
+	if def.Partition != nil {
+		partitionColumns := make([]string, len(def.Partition.Columns))
+		for i, column := range def.Partition.Columns {
+			field, ok := obj.FieldMap[column]
+			if !ok {
+				return nil, fmt.Errorf("partition column field %s not found", column)
+			}
+
+			partitionColumns[i] = util.Camel2Snake(field.Column)
+		}
+
+		partitionDefs := make([]meta.PartitionDef, 0, len(def.Partition.Defs))
+		for _, pDef := range def.Partition.Defs {
+			partitionDefs = append(partitionDefs, meta.PartitionDef{
+				Name:     pDef.Name,
+				Op:       pDef.Op,
+				Expr:     pDef.Expr,
+				Values:   pDef.Values,
+				MaxValue: pDef.MaxValue,
+			})
+		}
+
+		obj.Partition = meta.Partition{
+			Type:      def.Partition.Type,
+			Linear:    def.Partition.Linear,
+			Algorithm: def.Partition.Algorithm,
+			Expr:      def.Partition.Expr,
+			Columns:   partitionColumns,
+			Num:       def.Partition.Num,
+			Defs:      partitionDefs,
+		}
+	}
+
 	return obj, nil
 }
 

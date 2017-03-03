@@ -55,6 +55,11 @@ func (this *Table) ExtraLines() []string {
 			"DEFAULT CHARSET utf8",
 		)
 
+		if partitionLines := PartitionLinesForMySQL(this.Partition); len(partitionLines) > 0 {
+			lines = append(lines, "PARTITION BY")
+			lines = append(lines, partitionLines...)
+		}
+
 	case db.POSTGRESQL:
 		for _, i := range this.Object.Indexes {
 			lines = append(lines, IndexDefForPostgres(this.Object.TableIdentifier(), i))

@@ -13,6 +13,7 @@ type Object struct {
 	Table      string
 	PrimaryKey Field
 	Indexes    []Index
+	Partition  Partition
 
 	Fields   []Field
 	FieldMap map[string]Field
