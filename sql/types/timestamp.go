@@ -18,7 +18,7 @@ var (
 )
 
 func NewTimestamp(t time.Time) Timestamp {
-	return Timestamp(t.UnixNano())
+	return Timestamp(t.Unix())
 }
 
 type Timestamp int64
@@ -30,7 +30,7 @@ func (this *Timestamp) Scan(val interface{}) error {
 		return nil
 
 	case time.Time:
-		*this = Timestamp(val.UnixNano())
+		*this = Timestamp(val.Unix())
 		return nil
 
 	case []byte:
@@ -52,5 +52,5 @@ func (this Timestamp) Value() (driver.Value, error) {
 
 func (this Timestamp) Time() time.Time {
 	v := int64(this)
-	return time.Unix(v/sec, v%sec)
+	return time.Unix(v, 0)
 }

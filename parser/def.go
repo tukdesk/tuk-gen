@@ -5,18 +5,20 @@ const (
 	FiledOptionNullable = "nullable"
 	FiledOptionDefault  = "default"
 	FiledOptionColumn   = "column"
+	FiledOptionAutoIncr = "auto_incr"
 )
 
 type Def struct {
-	Engine     string                   `yaml:"engine,omitempty"`
-	DB         string                   `yaml:"db,omitempty"`
-	Table      string                   `yaml:"table,omitempty"`
-	PrimaryKey string                   `yaml:"pk,omitempty"`
-	Fileds     []map[string]interface{} `yaml:"fields"`
-	Indexes    [][]string               `yaml:"indexes,flow"`
-	Uniques    [][]string               `yaml:"uniques,flow"`
-	Sparses    [][]string               `yaml:"sparses,flow"`
-	Partition  *Partition               `yaml:"partition,omitempty"`
+	Engine         string                   `yaml:"engine,omitempty"`
+	DB             string                   `yaml:"db,omitempty"`
+	Table          string                   `yaml:"table,omitempty"`
+	PrimaryKeyName string                   `yaml:"pk_name"`
+	PrimaryKey     []map[string]interface{} `yaml:"pk,omitempty"`
+	Fileds         []map[string]interface{} `yaml:"fields"`
+	Indexes        [][]string               `yaml:"indexes,flow"`
+	Uniques        [][]string               `yaml:"uniques,flow"`
+	Sparses        [][]string               `yaml:"sparses,flow"`
+	Partition      *Partition               `yaml:"partition,omitempty"`
 }
 
 type Partition struct {

@@ -2,6 +2,7 @@ package meta
 
 import (
 	"regexp"
+	"strings"
 )
 
 var reFieldName = regexp.MustCompile("^[a-zA-Z0-9_]+$")
@@ -117,6 +118,26 @@ type Field struct {
 	Column       string
 	Length       int
 	Nullable     bool
-	IsPrimaryKey bool
+	AutoIncr     bool
 	DefaultValue interface{}
+}
+
+type Fields []Field
+
+func (this Fields) FuncTypedArgs() string {
+	args := make([]string, len(this))
+	for i, one := range this {
+		args[i] = one.Name.String() + " " + one.Type.GoType()
+	}
+
+	return strings.Join(args, ", ")
+}
+
+func (this Fields) FuncArgs() string {
+	args := make([]string, len(this))
+	for i, one := range this {
+		args[i] = one.Name.String()
+	}
+
+	return strings.Join(args, ", ")
 }

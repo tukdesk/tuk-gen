@@ -115,28 +115,20 @@ func (this *{{ $structName }}) Insert(objs ...*{{ $objName }}) (sql.Result, erro
     return exec.ExecStmt(stmt)
 }
 
-func (this *{{ $structName }}) FindOneByPrimaryKey(fields []string, key {{ .PrimaryKey.Type.GoType }}) (*{{ $objName }}, error) {
-    where := this.Where(this.SQL().Eq("{{ .PrimaryKey.Column }}", key))
+func (this *{{ $structName }}) FindOneByPrimaryKey(fields []string, {{ .PrimaryKey.FuncTypedArgs }}) (*{{ $objName }}, error) {
+    and := this.SQL().And(
+        {{ range $pk := .PrimaryKey -}}
+        this.SQL().Eq("{{ $pk.Column }}", {{ $pk.Name }}),
+        {{ end }}
+    )
+    where := this.Where(and)
 
     return this.FindOne(fields, where, 0)
 }
 
-func (this *{{ $structName }}) FindFullOneByPrimaryKey(key {{ .PrimaryKey.Type.GoType }}) (*{{ $objName }}, error) {
-    where := this.Where(this.SQL().Eq("{{ .PrimaryKey.Column }}", key))
+func (this *{{ $structName }}) FindFullOneByPrimaryKey({{ .PrimaryKey.FuncTypedArgs }}) (*{{ $objName }}, error) {
 
-    return this.FindOne(nil, where, 0)
-}
-
-func (this *{{ $structName }}) FindByPrimaryKeys(fields []string, keys []{{ .PrimaryKey.Type.GoType }}, orders ...db.Order) ([]*{{ $objName }}, error) {
-    where := this.Where(this.SQL().Eq("{{ .PrimaryKey.Column }}", keys))
-
-    return this.Find(fields, where, 0, 0, orders...)
-}
-
-func (this *{{ $structName }}) FindFullByPrimaryKeys(keys []{{ .PrimaryKey.Type.GoType }}, orders ...db.Order) ([]*{{ $objName }}, error) {
-    where := this.Where(this.SQL().Eq("{{ .PrimaryKey.Column }}", keys))
-
-    return this.Find(nil, where, 0, 0, orders...)
+    return this.FindOneByPrimaryKey(nil, {{ .PrimaryKey.FuncArgs }})
 }
 
 func (this *{{ $structName }}) FindOne(fields []string, where db.Where, offset uint64, orders ...db.Order) (*{{ $objName }}, error) {
@@ -250,9 +242,12 @@ func (this *{{ $structName }}) UpdateObject(obj *{{ $objName }}, fields ...strin
 
     pk := obj.PrimaryKey()
 
-    where := this.Where(this.SQL().Eq(pk, obj.Value(pk)))
+    where := make([]dbr.Builder, 0, len(pk))
+    for _, one := range pk {
+        where = append(where, this.SQL().Eq(one, obj.Value(one)))
+    }
 
-    return this.Update(where, values)
+    return this.Update(this.SQL().Where(where), values)
 }
 
 func (this *{{ $structName }}) Update(where db.Where, values map[string]interface{}) (int64, error) {
@@ -278,15 +273,12 @@ func (this *{{ $structName }}) Update(where db.Where, values map[string]interfac
 func (this *{{ $structName }}) DeleteObject(obj *{{ $objName }}) (int64, error) {
     pk := obj.PrimaryKey()
 
-    where := this.Where(this.SQL().Eq(pk, obj.Value(pk)))
-    return this.Delete(where)
-}
+    where := make([]dbr.Builder, 0, len(pk))
+    for _, one := range pk {
+        where = append(where, this.SQL().Eq(one, obj.Value(one)))
+    }
 
-func (this *{{ $structName }}) DeleteByPrimaryKeys(keys ...{{ .PrimaryKey.Type.GoType }}) (int64, error) {
-    pk := this.Object.PrimaryKey()
-
-    where := this.Where(this.SQL().Eq(pk, keys))
-    return this.Delete(where)
+    return this.Delete(this.SQL().Where(where))
 }
 
 func (this *{{ $structName }}) Delete(where db.Where) (int64, error) {

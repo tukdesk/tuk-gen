@@ -32,23 +32,48 @@ func DefaultDefParser(name string, def Def) (*meta.Object, error) {
 		obj.Table = util.Camel2Snake(name)
 	}
 
-	pk := meta.FieldName(def.PrimaryKey)
-	if pk == "" {
-		pk = defaultPrimaryKey
-	}
+	pks := make([]meta.Field, 0)
 
-	obj.PrimaryKey = meta.Field{
-		Name:         pk,
-		Type:         meta.FieldTypeId,
-		IsPrimaryKey: true,
-		Column:       util.Camel2Snake(pk.String()),
-	}
+	if len(def.PrimaryKey) == 0 {
+		pkName := meta.FieldName(def.PrimaryKeyName)
+		if pkName == "" {
+			pkName = defaultPrimaryKey
+		}
 
-	obj.FieldMap[obj.PrimaryKey.Name.String()] = obj.PrimaryKey
+		defaultPK := meta.Field{
+			Name:     pkName,
+			Type:     meta.FieldTypeId,
+			AutoIncr: true,
+			Column:   util.Camel2Snake(pkName.String()),
+		}
+		pks = append(pks, defaultPK)
+
+		obj.FieldMap[pkName.String()] = defaultPK
+
+	} else {
+		for i, pk := range def.PrimaryKey {
+			if len(pk) == 0 {
+				return nil, fmt.Errorf("#%d empty primary key map", i)
+			}
+
+			f, err := defaultFieldParser(pk)
+			if err != nil {
+				return nil, fmt.Errorf("#%d %s", i, err)
+			}
+
+			if _, ok := obj.FieldMap[f.Name.String()]; ok {
+				return nil, fmt.Errorf("#%d duplicate pk defination for %s", i, f.Name)
+			}
+
+			pks = append(pks, f)
+			obj.FieldMap[f.Name.String()] = f
+		}
+	}
+	obj.PrimaryKey = pks
 
 	for i, field := range def.Fileds {
 		if len(field) == 0 {
-			return nil, fmt.Errorf("#%d empty field map")
+			return nil, fmt.Errorf("#%d empty field map", i)
 		}
 
 		f, err := defaultFieldParser(field)
@@ -175,6 +200,9 @@ func defaultFieldParser(field map[string]interface{}) (meta.Field, error) {
 
 		case FiledOptionDefault:
 			f.DefaultValue = val
+
+		case FiledOptionAutoIncr:
+			f.AutoIncr, _ = val.(bool)
 
 		default:
 			if f.Name != "" {

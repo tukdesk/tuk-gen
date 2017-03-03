@@ -15,23 +15,28 @@ func ColumnDefForMySQL(opt Option, field meta.Field) string {
 	lengthAvailable := true
 
 	unsignedNumeric := false
+	autoIncrAvailable := false
 
 	switch field.Type {
 	case meta.FieldTypeUInt8:
 		str += " TINYINT"
 		unsignedNumeric = true
+		autoIncrAvailable = true
 
 	case meta.FieldTypeUInt16:
 		str += " SMALLINT"
 		unsignedNumeric = true
+		autoIncrAvailable = true
 
 	case meta.FieldTypeUInt32:
 		str += " INT"
 		unsignedNumeric = true
+		autoIncrAvailable = true
 
 	case meta.FieldTypeUInt64:
 		str += " BIGINT"
 		unsignedNumeric = true
+		autoIncrAvailable = true
 
 	case meta.FieldTypeString:
 		str += " VARCHAR"
@@ -39,15 +44,19 @@ func ColumnDefForMySQL(opt Option, field meta.Field) string {
 
 	case meta.FieldTypeInt8:
 		str += " TINYINT"
+		autoIncrAvailable = true
 
 	case meta.FieldTypeInt16:
 		str += " SMALLINT"
+		autoIncrAvailable = true
 
 	case meta.FieldTypeInt32:
 		str += " INT"
+		autoIncrAvailable = true
 
 	case meta.FieldTypeInt64, meta.FieldTypeId:
 		str += " BIGINT"
+		autoIncrAvailable = true
 
 	case meta.FieldTypeFloat64:
 		str += " DOUBLE"
@@ -93,11 +102,11 @@ func ColumnDefForMySQL(opt Option, field meta.Field) string {
 		str += " UNSIGNED"
 	}
 
-	if field.IsPrimaryKey {
-		str += " AUTO_INCREMENT PRIMARY KEY"
+	if autoIncrAvailable && field.AutoIncr {
+		str += " AUTO_INCREMENT"
 	}
 
-	if !field.IsPrimaryKey && !field.Nullable {
+	if !field.Nullable {
 		str += " NOT NULL"
 	}
 
