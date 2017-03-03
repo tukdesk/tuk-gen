@@ -48,13 +48,13 @@ Team:
     defs:
       - name: part_201600
         op: "lt"
-        expr: "unix_timestamp('2016-01-01 00:00:00')*1000000"
+        expr: "unix_timestamp('2016-01-01 00:00:00')*1000000000"
       - name: part_201601
         op: "lt"
-        expr: "unix_timestamp('2016-02-01 00:00:00')*1000000"
+        expr: "unix_timestamp('2016-02-01 00:00:00')*1000000000"
       - name: part_201602
         op: "lt"
-        expr: "unix_timestamp('2016-03-01 00:00:00')*1000000"
+        expr: "unix_timestamp('2016-03-01 00:00:00')*1000000000"
       - name: part_max
         op: "lt"
         max_value: true
