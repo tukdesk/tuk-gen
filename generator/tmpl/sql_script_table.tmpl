@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS {{ .TableIdentifier }} (
 	{{ $maxIdx := $lines.MaxIdx -}}
 	{{ range $idx, $line := $lines -}}
 	{{ $line }}
-	{{- if ne $idx $maxIdx }}, 
+	{{- if ne $idx $maxIdx }},
 	{{ end -}}
 	{{ end }}
 )

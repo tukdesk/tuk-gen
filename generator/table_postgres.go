@@ -84,8 +84,15 @@ func ColumnDefForPostgres(opt Option, field meta.Field) string {
 
 func IndexDefForPostgres(table string, index meta.Index) string {
 	names := make([]string, len(index.Fields))
+	idxDefs := make([]string, len(index.Fields))
 	for i, f := range index.Fields {
 		names[i] = f.Column
+
+		c := f.Column
+		if f.Desc {
+			c += " DESC"
+		}
+		idxDefs[i] = c
 	}
 
 	unique := ""
@@ -95,7 +102,7 @@ func IndexDefForPostgres(table string, index meta.Index) string {
 
 	idxName := fmt.Sprintf("ix_%s", strings.Join(names, "_"))
 
-	columns := strings.Join(names, ", ")
+	columns := strings.Join(idxDefs, ", ")
 
 	return fmt.Sprintf(postgresIndexFormat, unique, idxName, table, columns)
 }

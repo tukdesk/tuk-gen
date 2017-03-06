@@ -1,11 +1,14 @@
 # 账号
 Account:
   db: "test"
+  pk:
+    - id: id
   fields:
     - Username: string
       length: 30
     - Password: string
       length: 64
+      default: "test password"
     - CreatedAt: timestamp
     - UpdatedAt: timestamp
   uniques: [[Username]]
@@ -13,6 +16,7 @@ Account:
     type: KEY
     columns: [Username]
     num: 10
+  indexes: [[-CreatedAt, UpdatedAt]]
 
 Organization:
   engine: "postgres"
@@ -23,8 +27,11 @@ Organization:
     - CreatedAt: timestamp
     - UpdatedAt: timestamp
   uniques: [[Slug]]
+  indexes: [[CreatedAt, -UpdatedAt]]
 
 OrganizationMember:
+  pk_type: string
+  pk_length: 32
   fields:
     - OrganizationId: id
     - AccountId: id
@@ -87,6 +94,7 @@ Desk:
     - CreatedAt: timestamp
     - UpdatedAt: timestamp
     - Deleted: bool
+      default: 0
     - DeletedAt: timestamp
   partition:
     type: LIST
