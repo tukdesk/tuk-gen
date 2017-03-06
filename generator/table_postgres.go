@@ -37,13 +37,18 @@ func ColumnDefForPostgres(opt Option, field meta.Field) string {
 		str += " SMALLINT"
 
 	case meta.FieldTypeInt32:
-		str += " INT"
+		if field.AutoIncr {
+			str += " SERIAL"
+		} else {
+			str += " INT"
+		}
 
-	case meta.FieldTypeInt64:
-		str += " BIGINT"
-
-	case meta.FieldTypeId:
-		str += " BIGSERIAL"
+	case meta.FieldTypeInt64, meta.FieldTypeId:
+		if field.AutoIncr {
+			str += " BIGSERIAL"
+		} else {
+			str += " BIGINT"
+		}
 
 	case meta.FieldTypeFloat64:
 		str += " DOUBLE PRECISION"
@@ -70,11 +75,7 @@ func ColumnDefForPostgres(opt Option, field meta.Field) string {
 		panic(fmt.Errorf("unsupport data type %s of field %s for postgres", field.Type, field.Column))
 	}
 
-	if field.IsPrimaryKey {
-		str += " PRIMARY KEY"
-	}
-
-	if !field.IsPrimaryKey && !field.Nullable {
+	if !field.Nullable {
 		str += " NOT NULL"
 	}
 

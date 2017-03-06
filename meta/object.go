@@ -6,24 +6,27 @@ import (
 )
 
 type Object struct {
-	Package    string
-	Name       string
-	Engine     string
-	DB         string
-	Table      string
-	PrimaryKey Field
-	Indexes    []Index
+	Package   string
+	Name      string
+	Engine    string
+	DB        string
+	Table     string
+	Indexes   []Index
+	Partition Partition
 
-	Fields   []Field
-	FieldMap map[string]Field
+	PrimaryKey Fields
+	Fields     Fields
+	FieldMap   map[string]Field
 }
 
 func (this *Object) Columns() []string {
-	columns := make([]string, len(this.Fields)+1)
-	columns[0] = this.PrimaryKey.Column
+	columns := make([]string, 0, len(this.PrimaryKey)+len(this.Fields))
+	for _, pk := range this.PrimaryKey {
+		columns = append(columns, pk.Column)
+	}
 
-	for i, one := range this.Fields {
-		columns[i+1] = one.Column
+	for _, one := range this.Fields {
+		columns = append(columns, one.Column)
 	}
 
 	return columns

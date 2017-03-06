@@ -34,35 +34,48 @@ func DefaultDefParser(name string, def Def) (*meta.Object, error) {
 		obj.Table = util.Camel2Snake(name)
 	}
 
-	pk := meta.FieldName(def.PrimaryKey)
-	if pk == "" {
-		pk = defaultPrimaryKey
-	}
+	pks := make([]meta.Field, 0)
 
-	pkTypeStr := def.PrimaryKeyType
-	if pkTypeStr == "" {
-		pkTypeStr = defaultPrimaryKeyType
-	}
+	if len(def.PrimaryKey) == 0 {
+		pkName := meta.FieldName(def.PrimaryKeyName)
+		if pkName == "" {
+			pkName = defaultPrimaryKey
+		}
 
-	pkType := meta.FieldType(pkTypeStr)
-	if !pkType.Valid() {
-		return nil, fmt.Errorf("invalid primary key type %s", def.PrimaryKeyType)
-	}
+		defaultPK := meta.Field{
+			Name:     pkName,
+			Type:     meta.FieldTypeId,
+			AutoIncr: true,
+			Column:   util.Camel2Snake(pkName.String()),
+		}
+		pks = append(pks, defaultPK)
 
-	obj.PrimaryKey = meta.Field{
-		Name:         pk,
-		Type:         pkType,
-		IsPrimaryKey: true,
-		AutoIncr:     !def.PrimaryKeyNoIncr,
-		Length:       def.PrimaryKeyLength,
-		Column:       util.Camel2Snake(pk.String()),
-	}
+		obj.FieldMap[pkName.String()] = defaultPK
 
-	obj.FieldMap[obj.PrimaryKey.Name.String()] = obj.PrimaryKey
+	} else {
+		for i, pk := range def.PrimaryKey {
+			if len(pk) == 0 {
+				return nil, fmt.Errorf("#%d empty primary key map", i)
+			}
+
+			f, err := defaultFieldParser(pk)
+			if err != nil {
+				return nil, fmt.Errorf("#%d %s", i, err)
+			}
+
+			if _, ok := obj.FieldMap[f.Name.String()]; ok {
+				return nil, fmt.Errorf("#%d duplicate pk defination for %s", i, f.Name)
+			}
+
+			pks = append(pks, f)
+			obj.FieldMap[f.Name.String()] = f
+		}
+	}
+	obj.PrimaryKey = pks
 
 	for i, field := range def.Fileds {
 		if len(field) == 0 {
-			return nil, fmt.Errorf("#%d empty field map")
+			return nil, fmt.Errorf("#%d empty field map", i)
 		}
 
 		f, err := defaultFieldParser(field)
@@ -159,6 +172,39 @@ func DefaultDefParser(name string, def Def) (*meta.Object, error) {
 		obj.Indexes = append(obj.Indexes, idx)
 	}
 
+	if def.Partition != nil {
+		partitionColumns := make([]string, len(def.Partition.Columns))
+		for i, column := range def.Partition.Columns {
+			field, ok := obj.FieldMap[column]
+			if !ok {
+				return nil, fmt.Errorf("partition column field %s not found", column)
+			}
+
+			partitionColumns[i] = util.Camel2Snake(field.Column)
+		}
+
+		partitionDefs := make([]meta.PartitionDef, 0, len(def.Partition.Defs))
+		for _, pDef := range def.Partition.Defs {
+			partitionDefs = append(partitionDefs, meta.PartitionDef{
+				Name:     pDef.Name,
+				Op:       pDef.Op,
+				Expr:     pDef.Expr,
+				Values:   pDef.Values,
+				MaxValue: pDef.MaxValue,
+			})
+		}
+
+		obj.Partition = meta.Partition{
+			Type:      def.Partition.Type,
+			Linear:    def.Partition.Linear,
+			Algorithm: def.Partition.Algorithm,
+			Expr:      def.Partition.Expr,
+			Columns:   partitionColumns,
+			Num:       def.Partition.Num,
+			Defs:      partitionDefs,
+		}
+	}
+
 	return obj, nil
 }
 
@@ -178,6 +224,9 @@ func defaultFieldParser(field map[string]interface{}) (meta.Field, error) {
 
 		case FiledOptionDefault:
 			f.DefaultValue = val
+
+		case FiledOptionAutoIncr:
+			f.AutoIncr, _ = val.(bool)
 
 		default:
 			if f.Name != "" {

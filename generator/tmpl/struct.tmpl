@@ -18,10 +18,20 @@ var (
 
 {{ $objName := .Name }}
 type {{ $objName }} struct {
-    {{ .PrimaryKey.Name }} {{ .PrimaryKey.Type.GoType }}
+    {{- range $pk := .PrimaryKey }}
+    {{ $pk.Name }} {{ if $pk.Nullable }}*{{ end }}{{ $pk.Type.GoType }}
+    {{- end}}
     {{- range $field := .Fields }}
     {{ $field.Name }} {{ if $field.Nullable }}*{{ end }}{{ $field.Type.GoType }}
     {{- end}}
+}
+
+func (*{{ $objName }}) PrimaryKey() []string {
+    return []string{
+        {{ range $pk := .PrimaryKey -}}
+        "{{ $pk.Column }}",
+        {{ end }}
+    }
 }
 
 func (*{{ $objName }}) Fields() []string {
@@ -34,20 +44,37 @@ func (*{{ $objName }}) Fields() []string {
 
 func (*{{ $objName }}) FieldAll() []string {
     return []string{
-        "{{ .PrimaryKey.Column }}",
+        {{ range $pk := .PrimaryKey -}}
+        "{{ $pk.Column }}",
+        {{ end -}}
         {{ range $field := .Fields -}}
         "{{ $field.Column }}",
         {{ end }}
     }
 }
 
-func (*{{ $objName }}) PrimaryKey() string {
-    return "{{ .PrimaryKey.Column }}"
+{{ range $pk := .PrimaryKey }}
+func (*{{ $objName }}) Field{{ $pk.Name }}() string {
+    return "{{ $pk.Column }}"
 }
 
-func (*{{ $objName }}) Field{{ .PrimaryKey.Name }}() string {
-    return "{{ .PrimaryKey.Column }}"
+{{ if $pk.Nullable -}}
+func (this *{{ $objName }}) Get{{ $pk.Name }}() ({{ $pk.Type.GoType }}, bool) {
+    if this.{{ $pk.Name }} == nil {
+        return {{ $pk.Type.GoZero }}, false
+    }
+    return *this.{{ $pk.Name }}, true
 }
+
+func (this *{{ $objName }}) Set{{ $pk.Name }}ToNull() {
+    this.{{ $pk.Name }} = nil
+}
+
+func (this *{{ $objName }}) Set{{ $pk.Name }}(v {{ $pk.Type.GoType }}) {
+    this.{{ $pk.Name }} = {{ if $pk.Nullable }}&{{ end }}v
+}
+{{- end }}
+{{- end }}
 
 {{ range $field := .Fields }}
 func (*{{ $objName }}) Field{{ $field.Name }}() string {
@@ -73,9 +100,11 @@ func (this *{{ $objName }}) Set{{ $field.Name }}(v {{ $field.Type.GoType }}) {
 {{ end }}
 func (this *{{ $objName }}) Value(field string) interface{} {
     switch field {
-    case "{{ .PrimaryKey.Column }}":
-        return this.{{ .PrimaryKey.Name }}
+    {{ range $pk := .PrimaryKey -}}
+    case "{{ $pk.Column }}":
+        return this.{{ $pk.Name }}
 
+    {{ end }}
     {{ range $field := .Fields -}}
     case "{{ $field.Column }}":
         return this.{{ $field.Name }}
@@ -96,7 +125,9 @@ func (this *{{ $objName }}) Values() []interface{} {
 
 func (this *{{ $objName }}) ValueAll() []interface{} {
     return []interface{} {
-        this.{{ .PrimaryKey.Name }},
+        {{ range $pk := .PrimaryKey -}}
+        this.{{ $pk.Name }},
+        {{ end }}
         {{ range $field := .Fields -}}
         this.{{ $field.Name }},
         {{ end }}
@@ -105,9 +136,11 @@ func (this *{{ $objName }}) ValueAll() []interface{} {
 
 func (this *{{ $objName }}) Receiver(field string) interface{} {
     switch field {
-    case "{{ .PrimaryKey.Column }}":
-        return &this.{{ .PrimaryKey.Name }}
+    {{ range $pk := .PrimaryKey -}}
+    case "{{ $pk.Column }}":
+        return &this.{{ $pk.Name }}
 
+    {{ end }}
     {{ range $field := .Fields -}}
     case "{{ $field.Column }}":
         return &this.{{ $field.Name }}
@@ -120,7 +153,9 @@ func (this *{{ $objName }}) Receiver(field string) interface{} {
 
 func (this *{{ $objName }}) ReceiverAll() []interface{} {
     return []interface{} {
-        &this.{{ .PrimaryKey.Name }},
+        {{ range $pk := .PrimaryKey -}}
+        &this.{{ $pk.Name }},
+        {{ end -}}
         {{ range $field := .Fields -}}
         &this.{{ $field.Name }},
         {{ end }}

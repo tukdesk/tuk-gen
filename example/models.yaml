@@ -1,7 +1,8 @@
 # 账号
 Account:
   db: "test"
-  pk_no_incr: true
+  pk:
+    - id: id
   fields:
     - Username: string
       length: 30
@@ -11,6 +12,10 @@ Account:
     - CreatedAt: timestamp
     - UpdatedAt: timestamp
   uniques: [[Username]]
+  partition:
+    type: KEY
+    columns: [Username]
+    num: 10
   indexes: [[-CreatedAt, UpdatedAt]]
 
 Organization:
@@ -36,14 +41,33 @@ OrganizationMember:
 
 # 团队
 Team:
+  pk:
+    - id: id
+      auto_incr: true
+    - CreatedAt: timestamp
   fields: 
     - Name: string
     - Description: string
       nullable: true
-    - CreatedAt: timestamp
     - UpdatedAt: timestamp
     - Deleted: bool
     - DeletedAt: timestamp
+  partition:
+    type: RANGE
+    expr: "created_at"
+    defs:
+      - name: part_201600
+        op: "lt"
+        expr: "unix_timestamp('2016-01-01 00:00:00')"
+      - name: part_201601
+        op: "lt"
+        expr: "unix_timestamp('2016-02-01 00:00:00')"
+      - name: part_201602
+        op: "lt"
+        expr: "unix_timestamp('2016-03-01 00:00:00')"
+      - name: part_max
+        op: "lt"
+        max_value: true
 
 OrganizationTeamRelation:
   relation: true
@@ -72,6 +96,9 @@ Desk:
     - Deleted: bool
       default: 0
     - DeletedAt: timestamp
+  partition:
+    type: LIST
+    columns: [CreatedAt]
 
 DeskScheduleRelation:
   fields:
@@ -89,6 +116,9 @@ Schedule:
     - UpdatedAt: timestamp
     - Deleted: bool
     - DeletedAt: timestamp
+  partition:
+    type: HASH
+    expr: "TO_DAYS(created_at)"
 
 SchedulePointRelation:
   fields:
