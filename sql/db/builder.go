@@ -67,10 +67,18 @@ func (Builder) Expr(query string, value ...interface{}) dbr.Builder {
 }
 
 func (Builder) And(cond ...dbr.Builder) dbr.Builder {
+	if len(cond) == 1 {
+		return cond[0]
+	}
+
 	return dbr.And(cond...)
 }
 
 func (Builder) Or(cond ...dbr.Builder) dbr.Builder {
+	if len(cond) == 1 {
+		return cond[0]
+	}
+
 	return dbr.Or(cond...)
 }
 
