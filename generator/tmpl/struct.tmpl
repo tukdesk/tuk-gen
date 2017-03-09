@@ -127,7 +127,7 @@ func (this *{{ $objName }}) ValueAll() []interface{} {
     return []interface{} {
         {{ range $pk := .PrimaryKey -}}
         this.{{ $pk.Name }},
-        {{ end }}
+        {{ end -}}
         {{ range $field := .Fields -}}
         this.{{ $field.Name }},
         {{ end }}

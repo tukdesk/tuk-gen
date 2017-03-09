@@ -115,6 +115,21 @@ func (this *{{ $structName }}) Insert(objs ...*{{ $objName }}) (sql.Result, erro
     return exec.ExecStmt(stmt)
 }
 
+func (this *{{ $structName }}) Save(objs ...*{{ $objName }}) (sql.Result, error) {
+    if len(objs) == 0 {
+        return nil, nil
+    }
+
+    exec := this.Executor()
+
+    stmt := this.StmtInsertInto(this.Object.FieldAll()...)
+    for _, obj := range objs {
+        stmt = stmt.Values(obj.ValueAll()...)
+    }
+
+    return exec.ExecStmt(stmt)
+}
+
 func (this *{{ $structName }}) FindOneByPrimaryKey(fields []string, {{ .PrimaryKey.FuncTypedArgs }}) (*{{ $objName }}, error) {
     and := this.SQL().And(
         {{ range $pk := .PrimaryKey -}}
