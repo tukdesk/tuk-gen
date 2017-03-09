@@ -54,3 +54,7 @@ func (this Timestamp) Time() time.Time {
 	v := int64(this)
 	return time.Unix(v, 0)
 }
+
+func (this Timestamp) Int64() int64 {
+	return int64(this)
+}
