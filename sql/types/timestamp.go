@@ -24,6 +24,11 @@ func NewTimestamp(t time.Time) Timestamp {
 type Timestamp int64
 
 func (this *Timestamp) Scan(val interface{}) error {
+	if val == nil {
+		*this = 0
+		return nil
+	}
+
 	switch val := val.(type) {
 	case int64:
 		*this = Timestamp(val)
@@ -40,6 +45,10 @@ func (this *Timestamp) Scan(val interface{}) error {
 		}
 
 		*this = Timestamp(i)
+		return nil
+
+	case nil:
+		*this = 0
 		return nil
 	}
 

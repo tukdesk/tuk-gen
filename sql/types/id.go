@@ -21,6 +21,11 @@ func (this Id) Int64() int64 {
 }
 
 func (this *Id) Scan(val interface{}) error {
+	if val == nil {
+		*this = 0
+		return nil
+	}
+
 	switch val := val.(type) {
 	case int64:
 		*this = Id(val)
@@ -33,6 +38,10 @@ func (this *Id) Scan(val interface{}) error {
 		}
 
 		*this = Id(i)
+		return nil
+
+	case nil:
+		*this = 0
 		return nil
 	}
 

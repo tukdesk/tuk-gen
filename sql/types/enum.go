@@ -21,6 +21,11 @@ func (this Enum) Int32() int32 {
 }
 
 func (this *Enum) Scan(val interface{}) error {
+	if val == nil {
+		*this = 0
+		return nil
+	}
+
 	switch val := val.(type) {
 	case int64:
 		*this = Enum(val)
@@ -33,6 +38,10 @@ func (this *Enum) Scan(val interface{}) error {
 		}
 
 		*this = Enum(i)
+		return nil
+
+	case nil:
+		*this = 0
 		return nil
 	}
 
