@@ -38,7 +38,10 @@ func New(engine, source string, opts ...Option) (*Conn, error) {
 		d = dialect.SQLite3
 
 	default:
-		return nil, fmt.Errorf("unsupport engine %q", engine)
+		d = dialects[engine]
+		if d == nil {
+			return nil, fmt.Errorf("unsupport engine %q", engine)
+		}
 	}
 
 	db, err := sql.Open(engine, source)
