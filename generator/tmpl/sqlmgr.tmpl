@@ -96,8 +96,8 @@ func (this *{{ $structName }}) StmtDelete() *dbr.DeleteStmt {
     return this.SQL().DeleteFrom(this.Table())
 }
 
-func (this *{{ $structName }}) Where(where interface{}, conds ...interface{}) db.Where {
-    return this.SQL().Where(where, conds...)
+func (this *{{ $structName }}) Where(where dbr.Builder) db.Where {
+    return this.SQL().Where(where)
 }
 
 func (this *{{ $structName }}) Insert(objs ...*{{ $objName }}) (sql.Result, error) {
@@ -153,10 +153,7 @@ func (this *{{ $structName }}) FindOne(fields []string, where db.Where, offset u
         fields = this.Object.FieldAll()
     }
 
-    stmt := this.StmtSelect(fields...).Limit(1)
-    if where.Where != nil {
-        stmt = stmt.Where(where.Where, where.Conds...)
-    }
+    stmt := this.StmtSelect(fields...).Limit(1).Where(where.Builder())
 
     if offset > 0 {
         stmt = stmt.Offset(offset)
@@ -187,10 +184,7 @@ func (this *{{ $structName }}) Find(fields []string, where db.Where, offset, lim
         fields = this.Object.FieldAll()
     }
 
-    stmt := this.StmtSelect(fields...)
-    if where.Where != nil {
-        stmt = stmt.Where(where.Where, where.Conds...)
-    }
+    stmt := this.StmtSelect(fields...).Where(where.Builder())
 
     if offset > 0 {
         stmt = stmt.Offset(offset)
@@ -237,10 +231,7 @@ func (this *{{ $structName }}) Find(fields []string, where db.Where, offset, lim
 func (this *{{ $structName }}) Count(where db.Where) (int64, error) {
     exec := this.Executor()
 
-    stmt := this.StmtSelect("count(1)")
-    if where.Where != nil {
-        stmt = stmt.Where(where.Where, where.Conds...)
-    }
+    stmt := this.StmtSelect("count(1)").Where(where.Builder())
 
     row := exec.QueryRowStmt(stmt)
     var count int64
@@ -272,10 +263,7 @@ func (this *{{ $structName }}) Update(where db.Where, values map[string]interfac
 
     exec := this.Executor()
 
-    stmt := this.StmtUpdate().SetMap(values)
-    if where.Where != nil {
-        stmt = stmt.Where(where.Where, where.Conds...)
-    }
+    stmt := this.StmtUpdate().SetMap(values).Where(where.Builder())
 
     res, err := exec.ExecStmt(stmt)
     if err != nil {
@@ -299,10 +287,7 @@ func (this *{{ $structName }}) DeleteObject(obj *{{ $objName }}) (int64, error) 
 func (this *{{ $structName }}) Delete(where db.Where) (int64, error) {
     exec := this.Executor()
 
-    stmt := this.StmtDelete()
-    if where.Where != nil {
-        stmt = stmt.Where(where.Where, where.Conds...)
-    }
+    stmt := this.StmtDelete().Where(where.Builder())
 
     res, err := exec.ExecStmt(stmt)
     if err != nil {
