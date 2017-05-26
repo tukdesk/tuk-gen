@@ -110,10 +110,9 @@ func (Builder) I(s string) dbr.I {
 	return dbr.I(s)
 }
 
-func (Builder) Where(where interface{}, conds ...interface{}) Where {
+func (Builder) Where(where dbr.Builder) Where {
 	return Where{
 		Where: where,
-		Conds: conds,
 	}
 }
 
