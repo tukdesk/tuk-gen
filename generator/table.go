@@ -66,7 +66,7 @@ func (this *Table) ExtraLines() []string {
 	case db.MYSQL:
 		lines = append(lines,
 			"ENGINE = InnoDB",
-			"DEFAULT CHARSET utf8",
+			"DEFAULT CHARSET utf8mb4",
 		)
 
 		if partitionLines := PartitionLinesForMySQL(this.Partition); len(partitionLines) > 0 {
